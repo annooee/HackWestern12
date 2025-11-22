@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+.Python
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+.manifest
+
+# Build/test
+dist/
+build/
+htmlcov/
+.coverage*
+.pytest_cache/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Data & outputs
+data/
+out/
+runs/                     # Ultralytics default output dir
+*.log
+
+# Models & caches (keep out of git; use LFS if needed)
+models/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.npy
+
+# Images & videos (large; use LFS or keep local)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.jpg
+*.jpeg
+*.png
+
+# Torch/Ultralytics caches
+~/.cache/torch/
+**/Ultralytics/*

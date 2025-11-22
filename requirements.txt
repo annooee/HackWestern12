@@ -1,0 +1,13 @@
+# Core deep learning & vision
+torch                 # install correct wheel below
+torchvision
+opencv-python>=4.9.0.80
+numpy>=1.26.0
+
+# Visualization & math
+matplotlib>=3.8.0
+tqdm>=4.66.0
+shapely>=2.0.4
+
+# Optional YOLO fallback (if you still want it)
+ultralytics>=8.3.0
