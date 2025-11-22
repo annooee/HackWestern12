@@ -1,25 +1,25 @@
-# src/app_softcsrnet_local.py
 import argparse
 import os
 import sys
 import cv2
 import numpy as np
 
-from src.detectors.soft_csrnet import SoftCSRNetCounter
+from src.detectors.soft_csrnet import CSRNetCounter  # ← updated import
+
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Soft-CSRNet crowd density from local video")
+    p = argparse.ArgumentParser(description="CSRNet (official) crowd density from local video")
     p.add_argument("--video", required=True, help="Path to input video (e.g., data/crowd.mp4)")
-    p.add_argument("--save", default=None, help="Optional output path (e.g., out/softcsrnet.mp4)")
-    p.add_argument("--weights", default=None, help="Path to Soft-CSRNet weights (.pth).")
-    p.add_argument("--scale", type=float, default=1.0, help="Scale factor to calibrate counts.")
-    p.add_argument("--blur", type=int, default=9, help="Heatmap blur sigma.")
-    p.add_argument("--no-tile", action="store_true", help="Disable tiling (frames are small).")
-    p.add_argument("--ema", type=float, default=0.6, help="EMA decay (0 disables smoothing).")
+    p.add_argument("--save", default=None, help="Optional output path (e.g., out/csrnet_result.mp4)")
+    p.add_argument("--weights", default=None, help="Path to CSRNet weights (.pth)")
+    p.add_argument("--scale", type=float, default=1.0, help="Scale factor to calibrate counts")
+    p.add_argument("--blur", type=int, default=9, help="Heatmap blur sigma")
+    p.add_argument("--no-tile", action="store_true", help="Disable tiling (frames are small)")
+    p.add_argument("--ema", type=float, default=0.5, help="EMA decay (0 disables smoothing)")
     p.add_argument("--roi", default=None, help="ROI polygon as x1,y1;x2,y2;... (screen px)")
     p.add_argument("--heat_alpha", type=float, default=0.55, help="Heatmap overlay alpha [0..1]")
-    p.add_argument("--homography", default=None, help="(optional) 3x3 .npy for m^2 density (compute in app if needed)")
     return p.parse_args()
+
 
 def parse_roi(roi_str):
     if not roi_str:
@@ -33,6 +33,7 @@ def parse_roi(roi_str):
         return None
     return [pts]
 
+
 def main():
     args = parse_args()
 
@@ -45,7 +46,7 @@ def main():
         print(f"Failed to open video: {args.video}", file=sys.stderr)
         sys.exit(1)
 
-    counter = SoftCSRNetCounter(
+    counter = CSRNetCounter(
         weights_path=args.weights,
         tile=not args.no_tile,
         scale_factor=args.scale,
@@ -54,15 +55,6 @@ def main():
     )
 
     rois = parse_roi(args.roi)
-    H = None
-    if args.homography:
-        try:
-            H = np.load(args.homography)
-            if H.shape != (3, 3):
-                print("Homography must be 3x3; ignoring.", file=sys.stderr)
-                H = None
-        except Exception as e:
-            print(f"Could not load homography ({e}); continuing without m^2 density.", file=sys.stderr)
 
     writer = None
     if args.save:
@@ -76,7 +68,7 @@ def main():
             print(f"Failed to open writer at {args.save}; continuing without saving.", file=sys.stderr)
             writer = None
 
-    win = "Soft-CSRNet Crowd Density"
+    win = "CSRNet (Official) Crowd Density"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
 
     while True:
@@ -84,7 +76,7 @@ def main():
         if not ok:
             break
 
-        res = counter.process(frame, rois=rois, H=H, return_visualized=True, heat_alpha=args.heat_alpha)
+        res = counter.process(frame, rois=rois, return_visualized=True, heat_alpha=args.heat_alpha)
         view = res.annotated if res.annotated is not None else frame
 
         cv2.imshow(win, view)
@@ -99,6 +91,7 @@ def main():
     if writer is not None:
         writer.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
